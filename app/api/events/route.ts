@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const tags = formData.get("tags") as string;
+    const agenda = formData.get("agenda") as string;
+
+    
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 

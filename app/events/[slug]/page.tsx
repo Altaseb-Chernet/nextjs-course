@@ -35,34 +35,35 @@ const EventTags = ({ tags }: { tags: string[] }) => (
     </div>
 )
 
-const EventDetails = async ({ params }: { params: Promise<string> }) => {
-    'use cache'
-    cacheLife('hours');
-    const slug = await params;
+const EventDetails = async ({ params }: { params: Promise<{ slug: string }> }) => {
+  'use cache'
+  cacheLife('hours');
 
-    let event;
-    try {
-        const request = await fetch(`${BASE_URL}/api/events/${slug}`, {
-            next: { revalidate: 60 }
-        });
+  const { slug } = await params; 
 
-        if (!request.ok) {
-            if (request.status === 404) {
-                return notFound();
-            }
-            throw new Error(`Failed to fetch event: ${request.statusText}`);
-        }
+  let event;
+  try {
+    const request = await fetch(`${BASE_URL}/api/events/${slug}`, {
+      next: { revalidate: 60 },
+    });
 
-        const response = await request.json();
-        event = response.event;
-
-        if (!event) {
-            return notFound();
-        }
-    } catch (error) {
-        console.error('Error fetching event:', error);
+    if (!request.ok) {
+      if (request.status === 404) {
         return notFound();
+      }
+      throw new Error(`Failed to fetch event: ${request.statusText}`);
     }
+
+    const response = await request.json();
+    event = response.event;
+
+    if (!event) {
+      return notFound();
+    }
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return notFound();
+  }
 
     const { description, image, overview, date, time, location, mode, agenda, audience, tags, organizer } = event;
 
@@ -71,7 +72,8 @@ const EventDetails = async ({ params }: { params: Promise<string> }) => {
     const bookings = 10;
 
     const similarEvents: IEvent[] = (await getSimilarEventsBySlug(slug)) as unknown as IEvent[];
-
+  
+  
     return (
         <section id="event">
             <div className="header">
